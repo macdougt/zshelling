@@ -1,0 +1,80 @@
+# sqlite database
+export BBH_DB="$HOME/data/dbs/sqlite/bbh.sqlite"
+
+# Global map of tty to unique _id (id_+=timestamp at key creation)
+declare -gA COMMAND_MAP
+#echo ${(t)COMMAND_MAP}
+
+add_record() {
+    #echo "add record $SHELL"
+    #echo $@
+    # Escape the commands (possibly again)
+    current_command=$4
+    full_command=$5
+
+    # Escaping is confusing two double quotes look like one
+    #esc_current_command=${current_command//\\/\\\\}
+    #echo "--- $esc_current_command"
+    esc_current_command=${current_command//\"/\"\"}
+
+    #esc_full_command=${full_command//\\/\\\\}
+    #echo "--- $esc_full_command"
+    esc_full_command=${full_command//\"/\"\"}
+
+    #echo "--- $esc_current_command"
+    #echo "--- $esc_full_command"
+
+    current_id=$(sqlite3 $BBH_DB "insert into commands (ppid,user,host,cmd_before,cmd_full,tty,pwd_before,pwd_after,time_added,time_completed,return_code) values ($1,\"$2\",\"$3\",\"$esc_current_command\",\"$esc_full_command\",\"$6\",\"$7\",\"$8\",$9,$10,$11) returning id;")
+
+    #echo "---> $current_id"
+    #echo ${(t)COMMAND_MAP}
+    COMMAND_MAP[$tty]=$current_id
+    # for key val in "${(@kv)COMMAND_MAP}"; do
+    #     echo "$key -> $val"
+    # done
+    # echo "--->> $COMMAND_MAP[$tty]"
+}
+
+update_record() {
+    id=${COMMAND_MAP[$1]}
+    # echo "update record"
+    # echo $id 
+    # echo $@ 
+    # echo "sqlite3 $BBH_DB \"UPDATE commands SET pwd_after=\\\"$2\\\",time_completed=$3,return_code=$4 WHERE id=$id\";"
+    sqlite3 $BBH_DB "UPDATE commands SET pwd_after=\"$2\",time_completed=$3,return_code=$4 WHERE id=\"$id\"";
+}
+
+precmd() {
+    #echo "precmd"
+    local return_code="$?"
+    epoch=$(date +'%s')
+    #echo $epoch
+
+    # Add or update the record here
+    tty=$(tty)
+    dir=$(pwd)
+    update_record $tty $dir $epoch $return_code
+}
+
+preexec () {
+    #echo "preexec"
+    current_command=$1
+    full_command=$3
+
+    # Escape the commands
+    esc_current_command=${current_command//\\/\\\\}
+    esc_current_command=${esc_current_command//\"/\\\"}
+    esc_full_command=${full_command//\\/\\\\}
+    esc_full_command=${esc_full_command//\"/\\\"}
+
+    current_shell_pid=$$
+    user=$(whoami)
+    dir=$(pwd)
+    epoch=$(date +'%s')
+    tty=$(tty)
+    cur_host=$(hostname)
+
+    add_record $current_shell_pid $user $HOST "$current_command" "$full_command" $tty "$dir" "" $epoch 0 0
+}
+
+alias bbh='python3 $HOME/data/utils/bbh.py find '

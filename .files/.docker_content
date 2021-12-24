@@ -1,0 +1,66 @@
+# Set reverse sorting if gtac is available
+if command -v gtac > /dev/null 2>&1; then
+  alias con="docker container ls -a --format 'table {{.Names}}\t[{{.Image}}]\t{{.Status}}' | gtac"
+  alias containers="docker container ls -a --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}' | gtac"
+  alias images='docker image ls | gtac'
+  alias dls='docker image ls | gtac;docker container ls -a | gtac'
+else
+  alias con="docker container ls -a --format 'table {{.Names}}\t[{{.Image}}]\t{{.Status}}'"
+  alias containers="docker container ls -a --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}'" 
+  alias images='docker image ls'
+  alias dls='docker image ls;docker container ls -a'
+fi
+
+# Aliases
+alias dockerls=dls
+alias dockerlsc='docker container ls -a'
+alias dockerkillcreate='echo "Killing created containers";docker container ls -aq -f status=created | xargs docker rm'
+alias dockerkillexit='echo "Killing exited containers";docker container ls -aq -f status=exited | xargs docker rm'
+alias dockerstart=docs
+alias dtc='dockerkillall;dockerclean'
+
+function dockerKillFunction() {
+  echo "Killing $*"
+  docker stop $*;docker rm $*
+}
+
+alias dockerkill=dockerKillFunction
+alias dockerkillall='echo "Killing all containers";docker stop $(docker container ls -a -q);docker rm $(docker container ls -a -q)'
+
+# List docker images matching regexp
+function diFunction() {
+  docker image ls -a | egrep "$1"
+}
+
+alias docs='python3 /Users/macdougt/data/dev/python/docs.py && bash /tmp/yoyo'
+alias docb='python3 /Users/macdougt/data/dev/python/docb.py && bash /tmp/yoyo'
+alias dockerbash=docb
+alias docbroot='docb --user root'
+
+alias dk='python3 /Users/macdougt/data/dev/python/dk.py && bash /tmp/yoyo'
+
+# List docker images matching regexp
+function diFunction() {
+  docker image ls -a | egrep "$1"
+}
+
+alias dis='docker image ls --format "{{.Size}}\t{{.Repository}}:{{.Tag}}" | gsort -h'
+
+alias di=diFunction
+
+function dirmFunction() {
+  di "$1"
+  # Prompt user for input
+  echo -n "Kill the above images [y/N]? "
+  read answer
+  echo
+
+  if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
+    echo "Performing kills now..."
+    di "$1" | awk '{print $3}' | xargs docker rmi
+  else
+    echo "Just looking then"
+  fi
+}
+
+alias dirm=dirmFunction

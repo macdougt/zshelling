@@ -1,0 +1,15 @@
+# dirhistory
+
+export DH="${HOME}/.dirhistory"
+export DH_TAGS="${HOME}/.dh_tags"
+
+function dirHistoryFunction() {
+   if [ -z "$1" ]
+   then
+      python3 $UTILS/dh_list.py | tail -20
+   else
+      python3 $UTILS/dh_list.py | grep $*
+   fi
+}
+
+alias dh=dirHistoryFunction

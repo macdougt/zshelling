@@ -1,0 +1,26 @@
+# PYTHON
+alias p3='/opt/homebrew/bin/python3'
+
+
+alias a='alias'
+alias ccli='/opt/homebrew/bin/chrome-cli'
+alias eg='egrep'
+alias g='grep'
+alias h='history'
+#alias l='exa'
+alias la='ls -A'
+alias lal='ls -altrh'
+#alias lal='exa -alh -s=modified'
+alias ll='ls -lhtr'
+alias path='env | grep ^PATH='
+alias pdb='python3 -m pdb'
+alias pythonpath='python3 -c "import sys;print(\"\n\".join(sys.path))"'
+alias s='source ${HOME}/.zprofile'
+alias t='tail'
+alias testdb1='psql -h localhost -U postgres -p 5679 -d testdb1'
+alias timestamp='date +%Y.%m.%d-%H.%M.%S'
+alias ts=timestamp
+alias u='unalias'
+alias vil='vi `fc -s`'
+alias updatedb='sudo updatedb'
+alias webhere='python3 -m http.server '
