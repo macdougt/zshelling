@@ -1,0 +1,6 @@
+
+alias doneAmigo='afplay $HOME/data/Sound/doneAmigo.mp3'
+
+function alert() {
+    osascript -e "display notification \"$2\" with title \"$1\""
+}
